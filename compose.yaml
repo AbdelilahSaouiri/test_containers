@@ -1,0 +1,51 @@
+services:
+  postgres:
+    image: 'postgres:latest'
+    container_name: postgres
+    environment:
+      - 'POSTGRES_DB=db_users'
+      - 'POSTGRES_PASSWORD=secret'
+      - 'POSTGRES_USER=abdelilah'
+    ports:
+      - '5432:5432'
+
+  mariadb-keycloak:
+    image: mariadb:10.5
+    environment:
+      MARIADB_DATABASE: ${MARIADB_KEYCLOAK_DATABASE:-keycloak}
+      MARIADB_USER: ${MARIADB_KEYCLOAK_USER:-keycloak}
+      MARIADB_PASSWORD: ${MARIADB_KEYCLOAK_PASSWORD:-keycloak_pass}
+      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD:-root_pass}
+    ports:
+      - '3306:3306'
+    volumes:
+      - mariadb_keycloak_data:/var/lib/mysql
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -P 3306 -uroot -p\"${MARIADB_ROOT_PASSWORD}\" || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    labels:
+      org.springframework.boot.ignore: "true"
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:latest
+    container_name: keycloak
+    command: start-dev
+    environment:
+      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN:-admin}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-admin}
+      KC_DB: mariadb
+      KC_DB_URL_HOST: mariadb-keycloak
+      KC_DB_USERNAME: ${MARIADB_KEYCLOAK_USER:-keycloak}
+      KC_DB_PASSWORD: ${MARIADB_KEYCLOAK_PASSWORD:-keycloak_pass}
+    ports:
+      - "8080:8080"
+    depends_on:
+        - mariadb-keycloak
+    restart: unless-stopped
+
+volumes:
+  mariadb_keycloak_data:

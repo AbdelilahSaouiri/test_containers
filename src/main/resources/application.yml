@@ -1,0 +1,23 @@
+spring:
+  application:
+    name: demo
+  datasource:
+    url: jdbc:postgres://postgres:5432/db_users
+    username: abdelilah
+    password: secret
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8080/realms/spring-realm
+      authorizationserver:
+        endpoint:
+          jwk-set-uri: http://localhost:8080/realms/spring-realm/protocol/openid-connect/certs
+  docker:
+    compose:
+      lifecycle-management: start_only
+  jpa:
+    generate-ddl: true
+server:
+  port: 8085
+

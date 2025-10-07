@@ -1,0 +1,5 @@
+spring:
+  datasource:
+    url: jdbc:postgres://postgres:5432/test
+  jpa:
+    generate-ddl: true
